@@ -31,24 +31,24 @@ Write-Log "Undo file: $undoFile"
 if ($PWD.Path -eq "$env:windir\System32") {
     Write-Log "ERROR: Do not run this script from the System32 directory. Please run it from your user or project folder." "ERROR"
     Read-Host -Prompt "Press Enter to exit"
-    return
+    throw "Script was run from System32. Exiting."
 }
 
 # Relaunch as administrator if not already elevated
 if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
     Write-Log "Script is not running as administrator. Attempting to relaunch with elevated privileges..." "WARNING"
-    $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi.FileName = 'powershell.exe'
-    $psi.Arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
-    $psi.Verb = 'runas'
+    $originalDir = $PWD.Path
+    $scriptPath = $MyInvocation.MyCommand.Path
+
+    $argString = "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`""
     try {
-        $p = [System.Diagnostics.Process]::Start($psi)
-        Write-Log "Script relaunched as administrator. Please continue in the new window." "INFO"
+        Start-Process powershell.exe -ArgumentList $argString -WorkingDirectory $originalDir -Verb runas
+        Write-Log "Script relaunched as administrator in `$originalDir`. Please continue in the new window." "INFO"
     } catch {
         Write-Log "Failed to relaunch script as administrator: $($_.Exception.Message)" "ERROR"
         Read-Host -Prompt "Press Enter to exit"
     }
-    throw "Script must be run as administrator. Relaunch attempted."
+    exit
 }
 
 # Check if winget is installed
