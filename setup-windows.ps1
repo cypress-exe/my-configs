@@ -27,21 +27,36 @@ Write-Log "Starting Windows development environment setup"
 Write-Log "Log file: $logFile"
 Write-Log "Undo file: $undoFile"
 
-# Check if running as administrator
+# Prevent running in System32 directory
+if ($PWD.Path -eq "$env:windir\System32") {
+    Write-Log "ERROR: Do not run this script from the System32 directory. Please run it from your user or project folder." "ERROR"
+    Read-Host -Prompt "Press Enter to exit"
+    return
+}
+
+# Relaunch as administrator if not already elevated
 if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-Log "This script requires administrator privileges for software installation" "WARNING"
-    $continue = Read-Host "Continue anyway? Some installations may fail (y/n)"
-    if ($continue -ne 'y' -and $continue -ne 'Y') {
-        Write-Log "Setup cancelled by user" "INFO"
-        exit 1
+    Write-Log "Script is not running as administrator. Attempting to relaunch with elevated privileges..." "WARNING"
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = 'powershell.exe'
+    $psi.Arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
+    $psi.Verb = 'runas'
+    try {
+        $p = [System.Diagnostics.Process]::Start($psi)
+        Write-Log "Script relaunched as administrator. Please continue in the new window." "INFO"
+    } catch {
+        Write-Log "Failed to relaunch script as administrator: $($_.Exception.Message)" "ERROR"
+        Read-Host -Prompt "Press Enter to exit"
     }
+    throw "Script must be run as administrator. Relaunch attempted."
 }
 
 # Check if winget is installed
 if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
     Write-Log "winget is not installed or not found in PATH." "ERROR"
     Write-Log "Please install winget then re-run this script." "ERROR"
-    exit 1
+    Read-Host -Prompt "Press Enter to exit"
+    return
 }
 
 # Function to check if git is installed
@@ -113,7 +128,8 @@ if (-not (Test-GitInstalled)) {
         Write-Log "Git is not available. Please restart your shell or add git to PATH manually." "ERROR"
         Write-Log "Skipping git configuration..." "WARNING"
         Write-Log "Setup completed with warnings. Check log file: $logFile" "WARNING"
-        exit 1
+        Read-Host -Prompt "Press Enter to exit"
+        return
     }
 }
 
