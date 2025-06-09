@@ -18,6 +18,13 @@ function Write-Log {
     Add-Content -Path $logFile -Value $logEntry
 }
 
+# Prevent running in System32 directory
+if ($PWD.Path -eq "$env:windir\System32") {
+    Write-Log "ERROR: Do not run this script from the System32 directory. Please run it from your user or project folder." "ERROR"
+    Read-Host -Prompt "Press Enter to exit"
+    throw "Script was run from System32. Exiting."
+}
+
 Write-Log "Starting Windows development environment uninstall"
 
 # Find undo files if not specified
