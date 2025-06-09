@@ -96,7 +96,8 @@ log "Installing essential software..."
 declare -A packages=(
     ["git"]="Git"
     ["vim"]="Vim"
-    ["python3"]="Python 3"
+    # Only add Python 3 if not already installed
+    $(command -v python3 >/dev/null 2>&1 || echo '["python3"]="Python 3"')
     ["python3-pip"]="Python pip"
     ["curl"]="curl"
 )

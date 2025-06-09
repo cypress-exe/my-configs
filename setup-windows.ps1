@@ -86,8 +86,13 @@ Write-Log "Installing essential software..."
 
 $software = @(
     @{Name="Git"; Id="Git.Git"},
-    @{Name="Vim"; Id="vim.vim"},
-    @{Name="Python"; Id="Python.Python.3.12"},
+    @{Name="Vim"; Id="vim.vim"}
+)
+# Only add Python if not already installed
+if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
+    $software += @{Name="Python"; Id="Python.Python.3.12"}
+}
+$software += @(
     @{Name="Visual Studio Code"; Id="Microsoft.VisualStudioCode"},
     @{Name="curl"; Id="curl.curl"}
 )
