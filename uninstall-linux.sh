@@ -3,8 +3,6 @@
 # Author: cypress-exe
 # Description: Undoes changes made by the setup script
 
-set -e
-
 UNDO_FILE=""
 LOG_PATTERN="setup-log-*.txt"
 
