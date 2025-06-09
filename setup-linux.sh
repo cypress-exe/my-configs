@@ -93,14 +93,23 @@ fi
 log "Installing essential software..."
 
 # Define packages to install
-declare -A packages=(
-    ["git"]="Git"
-    ["vim"]="Vim"
-    # Only add Python 3 if not already installed
-    $(command -v python3 >/dev/null 2>&1 || echo '["python3"]="Python 3"')
-    ["python3-pip"]="Python pip"
-    ["curl"]="curl"
-)
+# Only add Python 3 if not already installed
+if command_exists python3; then
+    declare -A packages=(
+        ["git"]="Git"
+        ["vim"]="Vim"
+        ["python3-pip"]="Python pip"
+        ["curl"]="curl"
+    )
+else
+    declare -A packages=(
+        ["git"]="Git"
+        ["vim"]="Vim"
+        ["python3"]="Python 3"
+        ["python3-pip"]="Python pip"
+        ["curl"]="curl"
+    )
+fi
 
 # Install packages
 for package in "${!packages[@]}"; do
