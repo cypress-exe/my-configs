@@ -35,19 +35,10 @@ if ($PWD.Path -eq "$env:windir\System32") {
 }
 
 # Relaunch as administrator if not already elevated
+$scriptPath = $MyInvocation.MyCommand.Path
 if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-Log "Script is not running as administrator. Attempting to relaunch with elevated privileges..." "WARNING"
-    $originalDir = $PWD.Path
-    $scriptPath = $MyInvocation.MyCommand.Path
-
-    $argString = "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`""
-    try {
-        Start-Process powershell.exe -ArgumentList $argString -WorkingDirectory $originalDir -Verb runas
-        Write-Log "Script relaunched as administrator in `$originalDir`. Please continue in the new window." "INFO"
-    } catch {
-        Write-Log "Failed to relaunch script as administrator: $($_.Exception.Message)" "ERROR"
-        Read-Host -Prompt "Press Enter to exit"
-    }
+    Write-Log "Script is not running as administrator. You need to relaunch with administrator privilages." "ERROR"
+    Read-Host -Prompt "Press Enter to exit"
     exit
 }
 
