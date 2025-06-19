@@ -184,6 +184,39 @@ if ($existingName -and $existingName -ne $targetName -and -not $Force) {
     Write-Log "Git name set to: $targetName" "SUCCESS"
 }
 
+# Set up Git editor
+Write-Log "Setting up Git editor..."
+
+$existingEditor = ""
+try {
+    $existingEditor = git config --global core.editor 2>$null
+}
+catch {
+    # Config doesn't exist, which is fine
+}
+
+$targetEditor = "vim"
+
+if ($existingEditor -and $existingEditor -ne $targetEditor -and -not $Force) {
+    Write-Log "Existing git editor found: $existingEditor" "WARNING"
+    $response = Read-Host "Overwrite with $targetEditor? (y/n/s to skip)"
+    if ($response -eq 'y' -or $response -eq 'Y') {
+        Write-UndoCommand "git config --global core.editor `"$existingEditor`""
+        git config --global core.editor $targetEditor
+        Write-Log "Git editor set to: $targetEditor" "SUCCESS"
+    } elseif ($response -eq 's' -or $response -eq 'S') {
+        Write-Log "Skipping git editor configuration" "INFO"
+    }
+} elseif (-not $existingEditor -or $Force) {
+    if ($existingEditor) {
+        Write-UndoCommand "git config --global core.editor `"$existingEditor`""
+    } else {
+        Write-UndoCommand "git config --global --unset core.editor"
+    }
+    git config --global core.editor $targetEditor
+    Write-Log "Git editor set to: $targetEditor" "SUCCESS"
+}
+
 # Set up Git aliases
 Write-Log "Setting up Git aliases..."
 

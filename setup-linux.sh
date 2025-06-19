@@ -222,6 +222,33 @@ elif [[ -z "$EXISTING_NAME" || "$FORCE" == "true" ]]; then
     log "Git name set to: $TARGET_NAME" "SUCCESS"
 fi
 
+# Set up Git editor
+log "Setting up Git editor..."
+
+EXISTING_EDITOR=$(git config --global core.editor 2>/dev/null || echo "")
+TARGET_EDITOR="vim"
+
+if [[ -n "$EXISTING_EDITOR" && "$EXISTING_EDITOR" != "$TARGET_EDITOR" && "$FORCE" != "true" ]]; then
+    log "Existing git editor found: $EXISTING_EDITOR" "WARNING"
+    read -p "Overwrite with $TARGET_EDITOR? (y/n/s to skip): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        write_undo_command "git config --global core.editor \"$EXISTING_EDITOR\""
+        git config --global core.editor "$TARGET_EDITOR"
+        log "Git editor set to: $TARGET_EDITOR" "SUCCESS"
+    elif [[ $REPLY =~ ^[Ss]$ ]]; then
+        log "Skipping git editor configuration" "INFO"
+    fi
+elif [[ -z "$EXISTING_EDITOR" || "$FORCE" == "true" ]]; then
+    if [[ -n "$EXISTING_EDITOR" ]]; then
+        write_undo_command "git config --global core.editor \"$EXISTING_EDITOR\""
+    else
+        write_undo_command "git config --global --unset core.editor"
+    fi
+    git config --global core.editor "$TARGET_EDITOR"
+    log "Git editor set to: $TARGET_EDITOR" "SUCCESS"
+fi
+
 # Set up Git aliases
 log "Setting up Git aliases..."
 
