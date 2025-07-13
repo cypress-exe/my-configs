@@ -228,6 +228,7 @@ $aliases = @{
     "co" = "checkout"
     "reb" = "rebase"
     "ci" = "commit"
+    "amend" = "commit --amend --no-edit"
     "uncommit" = "reset HEAD~1"
     "unstage" = "restore --staged"
 }
